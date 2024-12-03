@@ -10,6 +10,6 @@ def safe_str_cmp(a: str, b: str) -> bool:
         result |= ord(x) ^ ord(y)
     return result == 0
 
-# Remove the monkey patching
-# import flask_login.utils
-# flask_login.utils.safe_str_cmp = safe_str_cmp
+# Add the monkey patching back
+import flask_login.utils
+flask_login.utils.safe_str_cmp = safe_str_cmp

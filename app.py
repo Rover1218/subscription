@@ -251,7 +251,8 @@ def update_subscription_dates():
 # Replace the usage of safe_str_cmp with hmac.compare_digest
 # In the User model or wherever safe_str_cmp was used:
 def check_password(self, password):
-    return hmac.compare_digest(self.password_hash, password)
+    return hmac.compare_digest(self.password_hash.encode('utf-8'), 
+                             password.encode('utf-8'))
 
 if __name__ == '__main__':
     app.run(debug=True)
