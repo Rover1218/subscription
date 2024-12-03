@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-import utils  # Add this import at the top
+import utils  # Ensure this import is at the top
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_talisman import Talisman
 from datetime import datetime, timedelta
