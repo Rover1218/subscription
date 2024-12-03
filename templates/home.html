@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1 class="main-title">Track & Save</h1>
+        <p class="subtitle">Your all-in-one subscription management platform</p>
+        <div class="cta-buttons">
+            <a href="/login" class="btn btn-primary">Get Started</a>
+            <a href="#features" class="btn btn-secondary">Learn More</a>
+        </div>
+    </div>
+    <div class="wave"></div>
+</div>
+
+<section id="features" class="features">
+    <div class="cards-container">
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Smart Analytics</h3>
+            <p>Track your subscriptions with powerful insights</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3>Reminders</h3>
+            <p>Never miss a payment deadline</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h3>Budget Control</h3>
+            <p>Optimize your subscription spending</p>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hero {
+        position: relative;
+        height: 60vh;
+        /* Reduced height */
+        padding-top: 80px;
+        /* Increased padding for navbar */
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        overflow: hidden;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding-top: 5vh;
+        /* Reduced padding */
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+        /* Reduced font size */
+        color: #fff;
+        margin-bottom: 0.5rem;
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 2rem;
+        animation: fadeIn 1.5s ease-out;
+    }
+
+    .cta-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        /* Remove underline */
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5);
+    }
+
+    .features {
+        padding: 3rem 1rem;
+        background: #fff;
+    }
+
+    .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        max-width: 1000px;
+        /* Reduced max-width */
+        margin: 0 auto;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+        background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .hero {
+            height: 50vh;
+        }
+
+        .main-title {
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .btn {
+            width: 200px;
+            text-align: center;
+        }
+
+        .cards-container {
+            grid-template-columns: 1fr;
+            padding: 0 1rem;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes wave {
+        0% {
+            background-position-x: 0;
+        }
+
+        100% {
+            background-position-x: 1440px;
+        }
+    }
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

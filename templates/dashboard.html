@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Monthly Spend Corner Card -->
+<div class="monthly-spend-corner">
+    <div class="spend-content">
+        <span class="spend-label">Monthly Spend</span>
+        <span class="spend-amount">₹{{ subscriptions|sum(attribute='amount')|round(2) }}</span>
+    </div>
+</div>
+
+<!-- Update container class to include navbar-spacing -->
+<div class="container main-container">
+    <!-- Subscription Grid -->
+    <div class="subscription-grid">
+        {% for sub in subscriptions %}
+        <div class="subscription-card" data-id="{{ sub._id }}">
+            <div class="renewal-tag {% if sub['renewal_date'] <= now + timedelta(days=7) %}urgent{% endif %}">
+                {{ sub['renewal_date'].strftime('%d %b %Y') }}
+            </div>
+            <div class="card-content">
+                <h3 class="subscription-name">{{ sub.name }}</h3>
+                <div class="price">₹{{ sub.amount }}</div>
+                <div class="frequency">{{ sub.frequency }}</div>
+                <button class="delete-btn" onclick="confirmDelete('{{ sub._id }}', '{{ sub.name }}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="subscription-card add-card" onclick="window.location.href='/add_subscription'">
+            <div class="add-content">
+                <i class="fas fa-plus"></i>
+                <span>Add New</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <!-- ...existing modal code... -->
+</div>
+
+<!-- Add this custom alert modal before the closing body tag -->
+<div class="custom-alert" id="deleteConfirmModal">
+    <div class="alert-content">
+        <div class="alert-header">
+            <h3>Confirm Deletion</h3>
+        </div>
+        <div class="alert-body">
+            <p>Are you sure you want to delete <span id="subscriptionToDelete"></span>?</p>
+        </div>
+        <div class="alert-footer">
+            <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-delete" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Add new theme styles */
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+    }
+
+    .main-container {
+        margin-top: 180px;
+        padding-bottom: 2rem;
+    }
+
+    .subscription-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .monthly-spend-corner {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .add-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    .add-card:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .add-content {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .renewal-tag {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .renewal-tag.urgent {
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+        .main-container {
+            margin-top: 220px;
+            padding: 0 1rem;
+        }
+    }
+
+    .dashboard-header {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 998;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 15px 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        color: white;
+    }
+
+    .main-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(to right, #ffffff, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 5px 0 0 0;
+    }
+
+    .main-container {
+        margin-top: 180px;
+        /* Increased to account for header */
+        padding-bottom: 2rem;
+    }
+
+    .monthly-spend-corner {
+        position: fixed;
+        top: 180px;
+        /* Adjusted to appear below header */
+        right: 20px;
+        z-index: 999;
+        /* Ensure it's below navbar but above content */
+    }
+
+    /* For mobile responsiveness */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            width: 90%;
+            padding: 10px 20px;
+        }
+
+        .main-title {
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+        }
+
+        .main-container {
+            margin-top: 220px;
+            /* Increased for mobile to account for monthly spend card */
+        }
+
+        .monthly-spend-corner {
+            position: fixed;
+            top: 160px;
+            left: 0;
+            right: 0;
+            width: 90%;
+            margin: 0 auto;
+        }
+    }
+
+    .monthly-spend-corner {
+        position: fixed;
+        top: 80px;
+        /* Adjust based on your navbar height */
+        right: 20px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 15px 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        color: white;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+
+    .monthly-spend-corner:hover {
+        transform: translateY(-5px);
+    }
+
+    .spend-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .spend-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .spend-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .overview-card {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .spend-section {
+        text-align: center;
+    }
+
+    .spend-section h3 {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .amount {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-item .label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-item .value {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .subscription-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem auto;
+        max-width: 1200px;
+        padding: 0 1rem;
+    }
+
+    .subscription-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .subscription-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .renewal-tag {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .renewal-tag.urgent {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .card-content {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .subscription-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e3c72;
+        margin-bottom: 0.75rem;
+    }
+
+    .price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #111827;
+        margin: 0.5rem 0;
+    }
+
+    .frequency {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .delete-btn {
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 0.5rem;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+
+    .delete-btn:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .add-card {
+        min-height: 250px;
+        margin: 0 auto;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .add-content {
+        text-align: center;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .add-content i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .add-content span {
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .add-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .add-card:hover .add-content {
+        transform: scale(1.05);
+    }
+
+    @keyframes fadeOut {
+        to {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .subscription-grid {
+            grid-template-columns: 1fr;
+            max-width: 100%;
+        }
+
+        .add-card {
+            min-height: 200px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .monthly-spend-corner {
+            position: static;
+            margin: 20px auto;
+            width: 90%;
+        }
+
+        .spend-content {
+            align-items: center;
+        }
+    }
+
+    /* Add these new styles */
+    .custom-alert {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-alert.show {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .alert-content {
+        background: white;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 400px;
+        overflow: hidden;
+        transform: translateY(-20px);
+        animation: slideIn 0.3s ease forwards;
+    }
+
+    .alert-header {
+        padding: 1.5rem;
+        background: #1e3c72;
+        color: white;
+    }
+
+    .alert-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .alert-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .alert-footer {
+        padding: 1rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn-cancel,
+    .btn-delete {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+        background: #e5e7eb;
+        border: none;
+        color: #4b5563;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        border: none;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #d1d5db;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideIn {
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1001;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-20px);
+    }
+
+    .toast.success {
+        background: #10B981;
+        color: white;
+    }
+
+    .toast.error {
+        background: #EF4444;
+        color: white;
+    }
+</style>
+
+<script>
+    function confirmDelete(id, name) {
+        const modal = document.getElementById('deleteConfirmModal');
+        const nameSpan = document.getElementById('subscriptionToDelete');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+        nameSpan.textContent = name;
+        modal.classList.add('show');
+
+        confirmBtn.onclick = () => {
+            deleteSubscription(id);
+        };
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteConfirmModal');
+        modal.classList.remove('show');
+    }
+
+    async function deleteSubscription(id) {
+        try {
+            const response = await fetch(`/delete_subscription/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const card = document.querySelector(`[data-id="${id}"]`);
+                card.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => {
+                    card.remove();
+                    closeDeleteModal();
+                    showToast('Subscription deleted successfully');
+                    location.reload();
+                }, 300);
+            } else {
+                throw new Error('Failed to delete subscription');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error deleting subscription', 'error');
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }, 100);
+    }
+</script>
+{% endblock %}

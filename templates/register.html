@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert">{{ messages[0] }}</div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="auth-button">Create Account</button>
+            <div class="form-footer">
+                <a href="{{ url_for('login') }}">Already have an account?</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

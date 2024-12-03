@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Add New Subscription</h2>
+            <p>Track your recurring payments efficiently</p>
+        </div>
+
+        <form method="POST" class="subscription-form">
+            <div class="form-group">
+                <label for="name">Service Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-tag"></i>
+                    <input type="text" id="name" name="name" required placeholder="e.g., Netflix, Spotify"
+                        autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Monthly Amount</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-rupee-sign"></i>
+                    <input type="number" id="amount" name="amount" required placeholder="0.00" step="0.01" min="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-folder"></i>
+                        <select id="category" name="category" required>
+                            <option value="" disabled selected>Select a category</option>
+                            <option value="streaming">Streaming</option>
+                            <option value="music">Music</option>
+                            <option value="gaming">Gaming</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="software">Software</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="frequency">Billing Cycle</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-clock"></i>
+                        <select id="frequency" name="frequency" required>
+                            <option value="" disabled selected>Select frequency</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Semi-Annual">Semi-Annual</option>
+                            <option value="Annual">Annual</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="renewal_date">Next Renewal Date</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar"></i>
+                    <input type="date" id="renewal_date" name="renewal_date" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('dashboard') }}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit">Add Subscription</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+    }
+
+    .form-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .form-header h2 {
+        color: #1e3c72;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+        color: #6b7280;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #374151;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .input-wrapper input:focus,
+    .input-wrapper select:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        background: #4f46e5;
+        color: white;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #f3f4f6;
+        color: #4b5563;
+        text-decoration: none;
+        border: 2px solid #e5e7eb;
+    }
+
+    .btn-submit:hover {
+        background: #4338ca;
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .form-card {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-container {
+            padding: 1rem;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            font-size: 16px;
+            /* Prevent zoom on mobile */
+        }
+    }
+</style>
+
+<script>
+    // Set min date to today for renewal date input
+    document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('renewal_date').min = today;
+    });
+</script>
+{% endblock %}
