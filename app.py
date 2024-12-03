@@ -9,13 +9,29 @@ from secrets import token_urlsafe
 from dotenv import load_dotenv
 import os
 from dateutil.relativedelta import relativedelta  # Add this import
+import hmac  # Add this import
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')  # Change this in production
-app.config['MONGO_URI'] = os.getenv('MONGO_URI')
+
+# Simplify MongoDB URI handling
+mongo_uri = os.getenv('MONGO_URI')
+if not mongo_uri:
+    app.config['MONGO_URI'] = 'mongodb://localhost:27017/subscription_tracker'
+else:
+    # Extract base URI and handle params
+    base_uri = mongo_uri.split('?')[0]
+    params = mongo_uri.split('?')[1] if '?' in mongo_uri else None
+    
+    # Ensure base URI has correct database name
+    if not base_uri.endswith('/subscription_tracker'):
+        base_uri = base_uri.rstrip('/') + '/subscription_tracker'
+    
+    # Reconstruct URI with params if they exist
+    app.config['MONGO_URI'] = f"{base_uri}?{params}" if params else base_uri
 
 # Add this custom filter
 @app.template_filter('strftime')
@@ -231,9 +247,14 @@ def update_subscription_dates():
             # Update subscription with new renewal date
             db.update_subscription_date(sub['_id'], new_date)
 
+# Replace the usage of safe_str_cmp with hmac.compare_digest
+# In the User model or wherever safe_str_cmp was used:
+def check_password(self, password):
+    return hmac.compare_digest(self.password_hash, password)
+
 if __name__ == '__main__':
     app.run(debug=True)
 
 # Add this block at the end of the file to make it compatible with Vercel
-app = Flask(__name__)
+# app = Flask(__name__)
 # ...existing code...
