@@ -550,6 +550,13 @@
         background: #EF4444;
         color: white;
     }
+
+    .some-class {
+        -webkit-background-clip: text;
+        background-clip: text;
+        /* Add this line */
+        /* ...existing styles... */
+    }
 </style>
 
 <script>
@@ -613,4 +620,5 @@
         }, 100);
     }
 </script>
+{% endblock %}
 {% endblock %}

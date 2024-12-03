@@ -6,10 +6,16 @@ from models import User, Subscription
 from database import Database
 from flask_mail import Mail, Message
 from secrets import token_urlsafe
+from dotenv import load_dotenv
+import os
+from dateutil.relativedelta import relativedelta  # Add this import
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # Change this in production
-app.config['MONGO_URI'] = "mongodb+srv://anindyakanti2020:8me3AfdtPHmtXTbW@cluster0.klcr5.mongodb.net/subscription_tracker?retryWrites=true&w=majority"
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')  # Change this in production
+app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 
 # Add this custom filter
 @app.template_filter('strftime')
@@ -22,19 +28,11 @@ def _jinja2_filter_strftime(date, fmt=None):
 Talisman(app, content_security_policy=None)
 db = Database(app)
 
-# Mail configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-gmail@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your-16-digit-app-password'
-mail = Mail(app)
-
 # Session configuration
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Default session lifetime
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)  # Remember me duration
 app.config['REMEMBER_COOKIE_SECURE'] = True
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
 
@@ -94,16 +92,10 @@ def login():
         user = User.from_db_dict(user_data) if user_data else None
         
         if user and user.check_password(password):
-            if remember:
-                session.permanent = True
-            
-            login_user(user, 
-                      remember=remember, 
-                      duration=app.config['REMEMBER_COOKIE_DURATION'],  # Changed this line
-                      force=True)
-            
-            db.update_user_login(user.id)
+            login_user(user, remember=remember)
+            session.permanent = True  # Make session permanent by default
             session['_id'] = token_urlsafe(32)
+            db.update_user_login(user.id)
             
             next_page = request.args.get('next')
             return redirect(next_page if next_page else url_for('dashboard'))
@@ -113,73 +105,18 @@ def login():
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    if request.method == 'POST':
-        email = request.form.get('email')
-        user_data = db.get_user_by_email(email)
-        
-        if user_data:
-            try:
-                reset_token = token_urlsafe(32)
-                expiry = datetime.utcnow() + timedelta(hours=1)
-                
-                db.create_password_reset(email, reset_token, expiry)
-                
-                reset_url = url_for('reset_password', token=reset_token, _external=True)
-                msg = Message('Password Reset Request',
-                            sender=app.config['MAIL_USERNAME'],
-                            recipients=[email])
-                msg.body = f'''To reset your password, visit the following link:
-{reset_url}
-
-If you did not make this request, please ignore this email.
-'''
-                mail.send(msg)
-                flash('Reset instructions sent to your email')
-                return redirect(url_for('login'))
-            except Exception as e:
-                flash('Error sending reset email. Please try again.')
-                print(f"Password reset error: {e}")
-        else:
-            flash('Email address not found')
-    return render_template('forgot_password.html')
+    return redirect(url_for('login'))
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    reset_data = db.get_password_reset(token)
-    
-    if not reset_data:
-        flash('Invalid or expired reset link')
-        return redirect(url_for('login'))
-    
-    if request.method == 'POST':
-        try:
-            password = request.form.get('password')
-            confirm_password = request.form.get('confirm_password')
-            
-            if password != confirm_password:
-                flash('Passwords do not match')
-                return render_template('reset_password.html')
-                
-            user = User.create(None, reset_data['email'], password)
-            db.update_user_password(reset_data['email'], user.password_hash)
-            db.delete_password_reset(token)
-            
-            flash('Your password has been updated')
-            return redirect(url_for('login'))
-        except Exception as e:
-            flash('Error resetting password. Please try again.')
-            print(f"Password update error: {e}")
-            
-    return render_template('reset_password.html')
+    return redirect(url_for('login'))
 
 # Protected routes - require login
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    # Update subscription dates before displaying
+    update_subscription_dates()
     subscriptions = list(db.get_user_subscriptions(current_user.id))
     return render_template('dashboard.html', 
                          subscriptions=subscriptions,
@@ -270,5 +207,33 @@ def page_not_found(error):
         return redirect(url_for('login'))
     return render_template('404.html'), 404
 
+# Add new function to update subscription dates
+def update_subscription_dates():
+    """Update renewal dates for passed subscriptions"""
+    now = datetime.utcnow()
+    subscriptions = db.get_user_subscriptions(current_user.id)
+    
+    for sub in subscriptions:
+        if sub['renewal_date'] < now:
+            # Calculate next renewal date based on frequency
+            frequency = sub['frequency']
+            old_date = sub['renewal_date']
+            
+            if frequency == 'Monthly':
+                new_date = old_date + relativedelta(months=1)
+            elif frequency == 'Quarterly':
+                new_date = old_date + relativedelta(months=3)
+            elif frequency == 'Semi-Annual':
+                new_date = old_date + relativedelta(months=6)
+            elif frequency == 'Annual':
+                new_date = old_date + relativedelta(years=1)
+            
+            # Update subscription with new renewal date
+            db.update_subscription_date(sub['_id'], new_date)
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+# Add this block at the end of the file to make it compatible with Vercel
+app = Flask(__name__)
+# ...existing code...

@@ -1,6 +1,7 @@
 from flask_pymongo import PyMongo
 from datetime import datetime
 from bson import ObjectId
+from dateutil.relativedelta import relativedelta
 
 class Database:
     def __init__(self, app):
@@ -11,9 +12,7 @@ class Database:
         # Create required indexes
         self.mongo.db.users.create_index("email", unique=True)
         self.mongo.db.subscriptions.create_index([("user_id", 1), ("name", 1)])
-        self.mongo.db.password_resets.create_index("token", unique=True)
-        self.mongo.db.password_resets.create_index("expiry", expireAfterSeconds=3600)
-
+        
     def create_user(self, username, email, password_hash):
         user_data = {
             "username": username,
@@ -52,28 +51,11 @@ class Database:
             "user_id": ObjectId(user_id)
         })
 
-    def create_password_reset(self, email, token, expiry):
-        reset_data = {
-            "email": email,
-            "token": token,
-            "expiry": expiry
-        }
-        return self.mongo.db.password_resets.insert_one(reset_data)
-
-    def get_password_reset(self, token):
-        return self.mongo.db.password_resets.find_one({
-            "token": token,
-            "expiry": {"$gt": datetime.utcnow()}
-        })
-
     def update_user_password(self, email, password_hash):
         return self.mongo.db.users.update_one(
             {"email": email},
             {"$set": {"password_hash": password_hash}}
         )
-
-    def delete_password_reset(self, token):
-        return self.mongo.db.password_resets.delete_one({"token": token})
 
     def update_user_login(self, user_id):
         """Update user's last login time and login count"""
@@ -100,4 +82,16 @@ class Database:
         return self.mongo.db.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {"session_valid": False}}
+        )
+
+    def update_subscription_date(self, subscription_id, new_date):
+        """Update subscription renewal date"""
+        return self.mongo.db.subscriptions.update_one(
+            {"_id": ObjectId(subscription_id)},
+            {
+                "$set": {
+                    "renewal_date": new_date,
+                    "updated_at": datetime.utcnow()
+                }
+            }
         )
